@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Assets.Scripts;
 using Assets.Scripts.DataStructures;
+using Assets.Scripts.DirectionOperations;
 
 public class BreadthFirstMind : AbstractPathMind
 {
@@ -19,25 +20,26 @@ public class BreadthFirstMind : AbstractPathMind
 
     public override Locomotion.MoveDirection GetNextMove(BoardInfo boardInfo, CellInfo currentPos, CellInfo[] goals)
     {
+        //Nos aseguramos de que se calcula el camino una sola vez al comienzo, comprobando si el camino ya se ha calculado
         if (!this._isPathCalculated)
         {
             this._isPathCalculated = true;
-            this._pathToFollow = ReconstructPath( currentPos, SolveGraph(currentPos, boardInfo));
+            this._pathToFollow = ReconstructPath(SolveGraph(currentPos, boardInfo));
         }
 
-        Locomotion.MoveDirection tempDirection = CalculateNextDirection( currentPos, _pathToFollow[_pathToFollowIndex]);
-        _pathToFollowIndex++;
+        Locomotion.MoveDirection tempDirection = DirectionOperations.CalculateDirectionToAdjacentCell( currentPos, this._pathToFollow[this._pathToFollowIndex]);
+        this._pathToFollowIndex++;
 
         return tempDirection;
     }
 
-    private List<CellParent> SolveGraph(CellInfo startingCell, BoardInfo boardInfo)
+    private List<CellAndFather> SolveGraph(CellInfo startingCell, BoardInfo boardInfo)
     {
         var q = new Queue<CellInfo>();
         q.Enqueue(startingCell);
 
-        var parentList = new List<CellParent>();
-        parentList.Add(new CellParent(startingCell, null));
+        var parentList = new List<CellAndFather>();
+        parentList.Add(new CellAndFather(startingCell, null));
 
         while (q.Count != 0)
         {
@@ -49,16 +51,16 @@ public class BreadthFirstMind : AbstractPathMind
             {
                 if (neighbours[i] != null)
                 {
-                    parentList.Add(new CellParent( neighbours[i], node));
+                    parentList.Add(new CellAndFather( neighbours[i], node));
 
                     if (neighbours[i].ItemInCell != null)
                     {
                         if (neighbours[i].ItemInCell.Tag == "Goal")
                         {
-                            print("Found goal at coordinates: " + neighbours[i].CellId);
-                            _endPoint = neighbours[i];
+                            Debug.Log("Found goal at coordinates: " + neighbours[i].CellId);
+                            Debug.Log("Goal found after iterating " + parentList.Count + " times");
 
-                            print("Goal found after iterating " + parentList.Count + " times");
+                            this._endPoint = neighbours[i];
 
                             return parentList;
                         }
@@ -72,14 +74,15 @@ public class BreadthFirstMind : AbstractPathMind
         }
 
         Debug.Log("No goal found");
-        return new List<CellParent>();
+        return new List<CellAndFather>();
     }
 
-    private List<CellInfo> ReconstructPath(CellInfo startingCell, List<CellParent> parentCells)
+    //Construye el camino a seguir en base a la lista con las celdas y los padres desde las que se llegaron a dichas celdas
+    private List<CellInfo> ReconstructPath(List<CellAndFather> parentCells)
     {
         var path = new List<CellInfo>();
 
-        for (CellInfo i = _endPoint; i != null; i = parentCells.Find(CellParent => CellParent.Cell == i).CellFather)
+        for (CellInfo i = this._endPoint; i != null; i = parentCells.Find(CellParent => CellParent.Cell == i).Father)
         {
             path.Add(i);
         }
@@ -89,39 +92,17 @@ public class BreadthFirstMind : AbstractPathMind
         return path;
     }
 
-    private struct CellParent
+    //Estructura que contiene referencia a una celda y a la celda desde la que se encontro
+    private struct CellAndFather
     {
         public CellInfo Cell { get; private set; }
-        public CellInfo CellFather { get; private set; }
+        public CellInfo Father { get; private set; }
 
-        public CellParent(CellInfo cell , CellInfo cellParent)
+        public CellAndFather(CellInfo cell , CellInfo cellParent)
         {
             this.Cell = cell;
-            this.CellFather = cellParent;
+            this.Father = cellParent;
         }
     }
 
-    private Locomotion.MoveDirection CalculateNextDirection( CellInfo currentPosition, CellInfo nextPosiiton)
-    {
-        Vector2 vectorDifference = nextPosiiton.GetPosition - currentPosition.GetPosition;
-
-        if (vectorDifference.x == 1)
-        {
-            return Locomotion.MoveDirection.Right;
-        }
-        else if (vectorDifference.x == -1)
-        {
-            return Locomotion.MoveDirection.Left;
-        }
-        if (vectorDifference.y == 1)
-        {
-            return Locomotion.MoveDirection.Up;
-        }
-        else if (vectorDifference.y == -1)
-        {
-            return Locomotion.MoveDirection.Down;
-        }
-
-        return Locomotion.MoveDirection.Up;
-    }
 }
