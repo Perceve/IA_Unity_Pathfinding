@@ -24,41 +24,56 @@ public class BreadthFirstMind : AbstractPathMind
         if (!this._isPathCalculated)
         {
             this._isPathCalculated = true;
-            this._pathToFollow = ReconstructPath(SolveGraph(currentPos, boardInfo));
+            //Guardamos el camino a seguir despues de resolver el grafo y reconstruir el camino en base a él
+            this._pathToFollow = ReconstructPath(BreadthFirstSearch(currentPos, boardInfo));
         }
 
+        //Calculamos la direccion que vamos a seguir en funcion de nuestra posicion actual y de la siguiente posicion en la lista
         Locomotion.MoveDirection tempDirection = DirectionOperations.CalculateDirectionToAdjacentCell( currentPos, this._pathToFollow[this._pathToFollowIndex]);
         this._pathToFollowIndex++;
 
         return tempDirection;
     }
 
-    private List<CellAndFather> SolveGraph(CellInfo startingCell, BoardInfo boardInfo)
+    //Resuelve el grafo con la busqueda en amplitud y devuelve una lista de celdas con referencia a los vecinos desde las que se encontró cada celda
+    private List<CellAndFather> BreadthFirstSearch(CellInfo startingCell, BoardInfo boardInfo)
     {
+        //Crea la cola de elementos que se van a recorrer y mete el punto de inicio en la cola
         var q = new Queue<CellInfo>();
         q.Enqueue(startingCell);
 
+        //Creas una lista que guarda referencia a cada celda que se haya recorrido y al padre celda desde el que se ha legado.
+        //Se utiliza para reconstruir el  camino una vez encontrado el objetivo
+        //Añadimos nuestra primera celda con null como padre, ya que no ha sido encontrada desde ninguna otra celda
         var parentList = new List<CellAndFather>();
         parentList.Add(new CellAndFather(startingCell, null));
 
+        //Recorremas la lista de celdas encoladas mientras siga llena
         while (q.Count != 0)
         {
+            //Sacamos el elemento de la lista para que no se vuelva a explorar
             var node = q.Dequeue();
+            //Recuperamos una aray de todos las celdas vecinas a explorar
             var neighbours = node.WalkableNeighbours(boardInfo);
 
-
+            //Recorremos las celdas vecinas para meterlas en la cola
             for (int i = 0; i < neighbours.Length; i++)
             {
+                //Comprobamos si las celdas son recorribles
                 if (neighbours[i] != null)
                 {
+                    //Añadimos cada vecino exlporado a la lista junto con el padre desde el que hemos llegado a él
                     parentList.Add(new CellAndFather( neighbours[i], node));
 
+                    //Comprobamos si ha alcanzado la meta
                     if (neighbours[i].ItemInCell != null)
                     {
                         if (neighbours[i].ItemInCell.Tag == "Goal")
                         {
                             Debug.Log("Found goal at coordinates: " + neighbours[i].CellId);
                             Debug.Log("Goal found after iterating " + parentList.Count + " times");
+
+                            //Si se alcanza la meta, guardamos la celda objetivo y devolvemos la lista con las celdas y sus padres
 
                             this._endPoint = neighbours[i];
 
@@ -73,6 +88,7 @@ public class BreadthFirstMind : AbstractPathMind
             }
         }
 
+        //Si se acaban los elemntos de la cola, no se ha encontrado el punto final, por lo tanot se devuelve una lista vacia
         Debug.Log("No goal found");
         return new List<CellAndFather>();
     }
@@ -82,7 +98,8 @@ public class BreadthFirstMind : AbstractPathMind
     {
         var path = new List<CellInfo>();
 
-        for (CellInfo i = this._endPoint; i != null; i = parentCells.Find(CellParent => CellParent.Cell == i).Father)
+        //Recorremos la lista, emepezando por el final, añadiendo cada elemento a la lista y sustiteyendolo por su padre para recorrer el camino e principio a fin
+        for (CellInfo i = this._endPoint; i != null; i = parentCells.Find(CellParent => CellParent.Cell == i).NeighbourFather)
         {
             path.Add(i);
         }
@@ -96,12 +113,12 @@ public class BreadthFirstMind : AbstractPathMind
     private struct CellAndFather
     {
         public CellInfo Cell { get; private set; }
-        public CellInfo Father { get; private set; }
+        public CellInfo NeighbourFather { get; private set; }
 
         public CellAndFather(CellInfo cell , CellInfo cellParent)
         {
             this.Cell = cell;
-            this.Father = cellParent;
+            this.NeighbourFather = cellParent;
         }
     }
 
