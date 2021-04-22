@@ -5,6 +5,7 @@ using Assets.Scripts;
 using Assets.Scripts.DataStructures;
 using Assets.Scripts.DirectionOperations;
 
+
 public class BreadthFirstMind : AbstractPathMind
 {
     private bool _isPathCalculated = false;
@@ -36,17 +37,17 @@ public class BreadthFirstMind : AbstractPathMind
     }
 
     //Resuelve el grafo con la busqueda en amplitud y devuelve una lista de celdas con referencia a los vecinos desde las que se encontró cada celda
-    private List<CellAndFather> BreadthFirstSearch(CellInfo startingCell, BoardInfo boardInfo)
+    private List<CellBreadthFirstMindInfo> BreadthFirstSearch(CellInfo startingCell, BoardInfo boardInfo)
     {
         //Crea la cola de elementos que se van a recorrer y mete el punto de inicio en la cola
         var q = new Queue<CellInfo>();
         q.Enqueue(startingCell);
 
-        //Creas una lista que guarda referencia a cada celda que se haya recorrido y al padre celda desde el que se ha legado.
+        //Crea una lista que guarda referencia a cada celda que se haya recorrido y al padre celda desde el que se ha legado.
         //Se utiliza para reconstruir el  camino una vez encontrado el objetivo
         //Añadimos nuestra primera celda con null como padre, ya que no ha sido encontrada desde ninguna otra celda
-        var parentList = new List<CellAndFather>();
-        parentList.Add(new CellAndFather(startingCell, null));
+        var parentList = new List<CellBreadthFirstMindInfo>();
+        parentList.Add(new CellBreadthFirstMindInfo(startingCell, null));
 
         //Recorremas la lista de celdas encoladas mientras siga llena
         while (q.Count != 0)
@@ -63,22 +64,19 @@ public class BreadthFirstMind : AbstractPathMind
                 if (neighbours[i] != null)
                 {
                     //Añadimos cada vecino exlporado a la lista junto con el padre desde el que hemos llegado a él
-                    parentList.Add(new CellAndFather( neighbours[i], node));
+                    parentList.Add(new CellBreadthFirstMindInfo( neighbours[i], node));
 
                     //Comprobamos si ha alcanzado la meta
-                    if (neighbours[i].ItemInCell != null)
+                    if (neighbours[i] == boardInfo.Exit)
                     {
-                        if (neighbours[i].ItemInCell.Tag == "Goal")
-                        {
-                            Debug.Log("Found goal at coordinates: " + neighbours[i].CellId);
-                            Debug.Log("Goal found after iterating " + parentList.Count + " times");
+                        Debug.Log("Found goal at coordinates: " + neighbours[i].CellId);
+                        Debug.Log("Goal found after iterating " + parentList.Count + " times");
 
-                            //Si se alcanza la meta, guardamos la celda objetivo y devolvemos la lista con las celdas y sus padres
+                        //Si se alcanza la meta, guardamos la celda objetivo y devolvemos la lista con las celdas y sus padres
 
-                            this._endPoint = neighbours[i];
+                        this._endPoint = neighbours[i];
 
-                            return parentList;
-                        }
+                        return parentList;
                     }
 
                     q.Enqueue(neighbours[i]);
@@ -90,11 +88,11 @@ public class BreadthFirstMind : AbstractPathMind
 
         //Si se acaban los elemntos de la cola, no se ha encontrado el punto final, por lo tanot se devuelve una lista vacia
         Debug.Log("No goal found");
-        return new List<CellAndFather>();
+        return new List<CellBreadthFirstMindInfo>();
     }
 
     //Construye el camino a seguir en base a la lista con las celdas y los padres desde las que se llegaron a dichas celdas
-    private List<CellInfo> ReconstructPath(List<CellAndFather> parentCells)
+    private List<CellInfo> ReconstructPath(List<CellBreadthFirstMindInfo> parentCells)
     {
         var path = new List<CellInfo>();
 
@@ -110,12 +108,12 @@ public class BreadthFirstMind : AbstractPathMind
     }
 
     //Estructura que contiene referencia a una celda y a la celda desde la que se encontro
-    private struct CellAndFather
+    private struct CellBreadthFirstMindInfo
     {
         public CellInfo Cell { get; private set; }
         public CellInfo NeighbourFather { get; private set; }
 
-        public CellAndFather(CellInfo cell , CellInfo cellParent)
+        public CellBreadthFirstMindInfo(CellInfo cell , CellInfo cellParent)
         {
             this.Cell = cell;
             this.NeighbourFather = cellParent;
