@@ -276,7 +276,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1139861461}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ce0051e7aaff4c24ca3db633b45c20f2, type: 3}
+  m_Script: {fileID: 11500000, guid: 0ac33e0d27519464c98df25e972740c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   openListPrefab: {fileID: 7110454892679753966, guid: dc7eabcbe9e2e1240a5610ce661f208f,
@@ -314,7 +314,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameManager: {fileID: 198952, guid: 1f54754c41c64a04aac6945bc71af6ca, type: 3}
   Planner: 0
-  seed: 45322
+  seed: 3021
   numEnemies: 0
 --- !u!4 &1401979017
 Transform:

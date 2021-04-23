@@ -16,6 +16,20 @@ namespace Assets.Scripts.DataStructures
         public float WalkCost { get; private set; }
         public bool Walkable { get; private set; }
 
+        public float gCost { get;  set; }
+
+        public float hCost { get;  set; }
+
+        public float fCost
+        {
+            get
+            {
+                return gCost + hCost;
+            }
+        }
+
+        public CellInfo parent { get; set; }
+
         public CellInfo(int col, int row)
         {
             this.WalkCost = 1.0f;
