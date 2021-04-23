@@ -8,14 +8,14 @@ using Assets.Scripts.SampleMind;
 
 using UnityEngine;
 
-public class ASTAR_GOODMIND : AbstractPathMind
+public class AstarMind : AbstractPathMind
 {
 	bool pathPrepared = false;
 	private List<CellInfo> pathToFollow;
 	private int _pathToFollowIndex = 0;
 
-	public GameObject openListPrefab;		//Representación visual de los nodos a seguir
-	public GameObject closedListPrefab;		//Representación visual de los nodos explorados
+	[SerializeField] private GameObject openListPrefab;		//Representación visual de los nodos a seguir
+	[SerializeField] private GameObject closedListPrefab;		//Representación visual de los nodos explorados
 
 	public override Locomotion.MoveDirection GetNextMove(BoardInfo boardInfo, CellInfo currentPos, CellInfo[] goals)
 	{
@@ -117,7 +117,6 @@ public class ASTAR_GOODMIND : AbstractPathMind
 
 		while (currentCellInfo != startCellInfo)
 		{
-			GameObject.Instantiate(openListPrefab).transform.position = startCellInfo.GetPosition;
 			path.Add(currentCellInfo);
 
 			Instantiate(openListPrefab).transform.position = currentCellInfo.GetPosition;

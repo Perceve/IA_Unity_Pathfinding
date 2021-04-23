@@ -13,6 +13,8 @@ public class BreadthFirstMind : AbstractPathMind
     private List<CellInfo> _pathToFollow;
     private int _pathToFollowIndex = 1;
 
+    [SerializeField] private GameObject openListPrefab;       //Representación visual de los nodos a seguir
+    [SerializeField] private GameObject closedListPrefab;		//Representación visual de los nodos explorados
 
     public override void Repath()
     {
@@ -57,6 +59,8 @@ public class BreadthFirstMind : AbstractPathMind
             //Recuperamos una aray de todos las celdas vecinas a explorar
             var neighbours = node.WalkableNeighbours(boardInfo);
 
+            Instantiate(closedListPrefab).transform.position = node.GetPosition;
+
             //Recorremos las celdas vecinas para meterlas en la cola
             for (int i = 0; i < neighbours.Length; i++)
             {
@@ -99,6 +103,8 @@ public class BreadthFirstMind : AbstractPathMind
         //Recorremos la lista, emepezando por el final, añadiendo cada elemento a la lista y sustiteyendolo por su padre para recorrer el camino e principio a fin
         for (CellInfo i = this._endPoint; i != null; i = parentCells.Find(CellParent => CellParent.Cell == i).NeighbourFather)
         {
+            Instantiate(openListPrefab).transform.position = i.GetPosition;
+
             path.Add(i);
         }
 

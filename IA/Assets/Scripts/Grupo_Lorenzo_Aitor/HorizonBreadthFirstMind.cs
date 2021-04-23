@@ -5,12 +5,17 @@ using Assets.Scripts;
 using Assets.Scripts.DataStructures;
 using Assets.Scripts.DirectionOperations;
 
-public class HorizonBridthFirstMind : AbstractPathMind
+public class HorizonBreadthFirstMind : AbstractPathMind
 {
     private CellInfo _objectiveEndCell;
     private CellInfo _pathEndCell;
     private List<CellInfo> _pathToFollow;
     [SerializeField] private int _targetDepth = 1;
+
+    [SerializeField] private GameObject openListPrefab;       //Representación visual de los nodos a seguir
+    [SerializeField] private GameObject closedListPrefab;		//Representación visual de los nodos explorados
+
+    private List<GameObject> pathPrefabs = new List<GameObject>();
 
     public override void Repath()
     {
@@ -19,6 +24,8 @@ public class HorizonBridthFirstMind : AbstractPathMind
 
     public override Locomotion.MoveDirection GetNextMove(BoardInfo boardInfo, CellInfo currentPos, CellInfo[] goals)
     {
+        //Limpiamos lños objetos que represenatn el camino a seguir y als celdas exploradas
+        pathPrefabs = DeleteObjectsAndEmptyList(pathPrefabs);
         //Primero fijamos la celda objetivo que vamos a usar como referencia, que será la celda de un enemigo o la meta
         CalculateObjectiveEndCell(boardInfo);
         print("Objective: " + this._objectiveEndCell.CellId);
@@ -29,6 +36,20 @@ public class HorizonBridthFirstMind : AbstractPathMind
         //Devolvemos un valor de dirección en función de la celda en la que nos encontramos y el paso siguente en el camino
         return DirectionOperations.CalculateDirectionToAdjacentCell(currentPos, this._pathToFollow[1]);
             
+    }
+
+    //Limpia la lista de objetos
+    private List<GameObject> DeleteObjectsAndEmptyList( List<GameObject> list)
+    {
+
+        foreach (var listElement in list)
+        {
+            Destroy(listElement);
+        }
+
+        list.Clear();
+
+        return list;
     }
 
     //Setea la celda objetivo final. Si hay enemigos, esocoge el primero de la lista, si no los hay, toma como objetivo la salida
@@ -44,7 +65,7 @@ public class HorizonBridthFirstMind : AbstractPathMind
         }
     }
 
-    //Resueleve el grafo con la busqueda en horizonte
+    //Resuelve el grafo con la busqueda en horizonte
     private List<CellHorizonMindInfo> BreadthFirstSearch(CellInfo startingCell, BoardInfo boardInfo)
     {
         //Crea la cola de elementos que se van a recorrer y mete el punto de inicio en la cola
@@ -73,6 +94,8 @@ public class HorizonBridthFirstMind : AbstractPathMind
                 //Nos aseguramos de que ese nodo es transitable y de que no se ha recorrido ya
                 if (neighbours[i] != null && !AdditionalCellsInfo.Contains(AdditionalCellsInfo.Find(cellInfo => cellInfo.Cell == neighbours[i])))
                 {
+                    pathPrefabs.Add(Instantiate(closedListPrefab, neighbours[i].GetPosition, Quaternion.identity));
+
                     //Si la profundidad del nodo que estabamos explorando es 1 menos que la objetivo, significa que sus vecinos tendrán la prfundidad objetivo
                     //Por lo tanto añadimos sus vecinos con su Heuristica calculada
                     if (AdditionalNodeInfo.DepthValue == this._targetDepth - 1)
@@ -113,6 +136,8 @@ public class HorizonBridthFirstMind : AbstractPathMind
         //Recorremos la lista, emepezando por el final, añadiendo cada elemento a la lista y sustiteyendolo por su padre para recorrer el camino e principio a fin
         for (CellInfo i = this._pathEndCell; i != null; i = parentCells.Find(CellParent => CellParent.Cell == i).NeighbourFather)
         {
+            pathPrefabs.Add(Instantiate(openListPrefab, new Vector3 (i.GetPosition.x, i.GetPosition.y, -1), Quaternion.identity));
+
             path.Add(i);
         }
 
